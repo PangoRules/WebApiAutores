@@ -1,8 +1,11 @@
-﻿namespace WebApiAutores
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+
+namespace WebApiAutores
 {
     public class Startup
     {
-        public IConfiguration Configuration;
+        public IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration)
         {
@@ -12,9 +15,15 @@
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("defaultConnection")));
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIAuthors", Version = "V1" });
+            });
         }
 
         public void Configure(IApplicationBuilder applicationBuilder, IWebHostEnvironment environment)
@@ -27,6 +36,8 @@
             }
 
             applicationBuilder.UseHttpsRedirection();
+
+            applicationBuilder.UseRouting();
 
             applicationBuilder.UseAuthorization();
 
