@@ -4,7 +4,6 @@ using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 using WebApiAutores.Filters;
 using WebApiAutores.Middlewares;
-using WebApiAutores.Services;
 
 namespace WebApiAutores
 {
@@ -19,12 +18,6 @@ namespace WebApiAutores
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddTransient<IService, ServiceA>();
-            services.AddTransient<MyActionFilter>();
-
-            services.AddHostedService<WriteInFile>();
-
-            services.AddResponseCaching();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 
             services.AddControllers(options =>

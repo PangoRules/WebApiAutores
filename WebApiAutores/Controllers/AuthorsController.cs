@@ -13,31 +13,21 @@ namespace WebApiAutores.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public ILogger<AuthorsController> Logger { get; }
-
-        public AuthorsController(ApplicationDbContext context, ILogger<AuthorsController> logger)
+        public AuthorsController(ApplicationDbContext context)
         {
             this._context = context;
-            Logger = logger;
         }
 
         [HttpGet] //GET: /api/authors
-        //[HttpGet("list")] //GET: /api/authors/list
-        //[HttpGet("/list")] //GET: /list
-        //[ResponseCache(Duration = 10)]
-        //[Authorize]
-        [ServiceFilter(typeof(MyActionFilter))]
         public async Task<ActionResult<List<Author>>> Get()
         {
-            throw new NotImplementedException();
-            Logger.LogInformation("Getting the authors");
             return await _context.Authors.ToListAsync();
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Author>> Get(int id)
         {
-            var autor = await _context.Authors.Include(a => a.Books).FirstOrDefaultAsync(a => a.Id == id);
+            var autor = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
 
             if(autor == null)
                 return NotFound();
@@ -48,7 +38,7 @@ namespace WebApiAutores.Controllers
         [HttpGet("{name}")]
         public async Task<ActionResult<Author>> Get(string name)
         {
-            var autor = await _context.Authors.Include(a => a.Books).FirstOrDefaultAsync(a => a.Name.Contains(name));
+            var autor = await _context.Authors.FirstOrDefaultAsync(a => a.Name.Contains(name));
 
             if(autor == null)
                 return NotFound();

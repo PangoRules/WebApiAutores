@@ -16,22 +16,22 @@ namespace WebApiAutores.Controllers
             _context = context;
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<Book>> Get(int id)
-        {
-            return await _context.Books.Include(x => x.Author).FirstOrDefaultAsync(b => b.Id == id);
-        }
+        //[HttpGet("{id:int}")]
+        //public async Task<ActionResult<Book>> Get(int id)
+        //{
+        //    return await _context.Books.Include(x => x.Author).FirstOrDefaultAsync(b => b.Id == id);
+        //}
 
-        [HttpPost]
-        public async Task<ActionResult> Add(Book book)
-        {
-            var existsAuthor = await _context.Authors.AnyAsync(a => a.Id == book.AuthorId);
-            if(!existsAuthor)
-                return BadRequest($"Author with id: {book.AuthorId} inexistent");
+        //[HttpPost]
+        //public async Task<ActionResult> Add(Book book)
+        //{
+        //    var existsAuthor = await _context.Authors.AnyAsync(a => a.Id == book.AuthorId);
+        //    if(!existsAuthor)
+        //        return BadRequest($"Author with id: {book.AuthorId} inexistent");
 
-            _context.Add(book);
-            await _context.SaveChangesAsync();
-            return Ok(book);
-        }
+        //    _context.Add(book);
+        //    await _context.SaveChangesAsync();
+        //    return Ok(book);
+        //}
     }
 }
