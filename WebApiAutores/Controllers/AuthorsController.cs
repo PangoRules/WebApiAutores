@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiAutores.Entities;
+using WebApiAutores.Filters;
 
 namespace WebApiAutores.Controllers
 {
@@ -11,20 +13,56 @@ namespace WebApiAutores.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public AuthorsController(ApplicationDbContext context)
+        public ILogger<AuthorsController> Logger { get; }
+
+        public AuthorsController(ApplicationDbContext context, ILogger<AuthorsController> logger)
         {
             this._context = context;
+            Logger = logger;
         }
 
-        [HttpGet]
+        [HttpGet] //GET: /api/authors
+        //[HttpGet("list")] //GET: /api/authors/list
+        //[HttpGet("/list")] //GET: /list
+        //[ResponseCache(Duration = 10)]
+        //[Authorize]
+        [ServiceFilter(typeof(MyActionFilter))]
         public async Task<ActionResult<List<Author>>> Get()
         {
-            return await _context.Authors.Include(a => a.Books).ToListAsync();
+            throw new NotImplementedException();
+            Logger.LogInformation("Getting the authors");
+            return await _context.Authors.ToListAsync();
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<Author>> Get(int id)
+        {
+            var autor = await _context.Authors.Include(a => a.Books).FirstOrDefaultAsync(a => a.Id == id);
+
+            if(autor == null)
+                return NotFound();
+
+            return autor;
+        }
+        
+        [HttpGet("{name}")]
+        public async Task<ActionResult<Author>> Get(string name)
+        {
+            var autor = await _context.Authors.Include(a => a.Books).FirstOrDefaultAsync(a => a.Name.Contains(name));
+
+            if(autor == null)
+                return NotFound();
+
+            return autor;
         }
 
         [HttpPost]
         public async Task<ActionResult> Add(Author author)
         {
+            var authorSameName = await _context.Authors.AnyAsync(x => x.Name == author.Name);
+            if(authorSameName)
+                return BadRequest($"There is already an author with the name: {author.Name}");
+
             _context.Add(author);
             await _context.SaveChangesAsync();
             return Ok();

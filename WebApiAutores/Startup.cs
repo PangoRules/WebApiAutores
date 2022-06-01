@@ -1,6 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+using WebApiAutores.Filters;
+using WebApiAutores.Middlewares;
+using WebApiAutores.Services;
 
 namespace WebApiAutores
 {
@@ -15,7 +19,18 @@ namespace WebApiAutores
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+            services.AddTransient<IService, ServiceA>();
+            services.AddTransient<MyActionFilter>();
+
+            services.AddHostedService<WriteInFile>();
+
+            services.AddResponseCaching();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+
+            services.AddControllers(options =>
+            {
+                options.Filters.Add(typeof(ExceptionFilter));
+            }).AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("defaultConnection")));
 
@@ -29,6 +44,8 @@ namespace WebApiAutores
 
         public void Configure(IApplicationBuilder applicationBuilder, IWebHostEnvironment environment)
         {
+            applicationBuilder.UseLoggHttpResponse();
+
             // Configure the HTTP request pipeline.
             if (environment.IsDevelopment())
             {
@@ -39,6 +56,9 @@ namespace WebApiAutores
             applicationBuilder.UseHttpsRedirection();
 
             applicationBuilder.UseRouting();
+
+            applicationBuilder.UseResponseCaching();
+            
 
             applicationBuilder.UseAuthorization();
 

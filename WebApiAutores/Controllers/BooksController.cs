@@ -9,7 +9,7 @@ namespace WebApiAutores.Controllers
     [Route("api/books")]
     public class BooksController : ControllerBase
     {
-        private ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
 
         public BooksController(ApplicationDbContext context)
         {
