@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiAutores.DTOs;
 using WebApiAutores.Entities;
-using WebApiAutores.Filters;
 
 namespace WebApiAutores.Controllers
 {
@@ -12,64 +12,77 @@ namespace WebApiAutores.Controllers
     public class AuthorsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public AuthorsController(ApplicationDbContext context)
+        public AuthorsController(ApplicationDbContext context, IMapper mapper)
         {
             this._context = context;
+            this._mapper = mapper;
         }
 
         [HttpGet] //GET: /api/authors
-        public async Task<ActionResult<List<Author>>> Get()
+        public async Task<ActionResult<List<AuthorDto>>> GetList()
         {
-            return await _context.Authors.ToListAsync();
+            var authors = await _context.Authors.ToListAsync();
+            return _mapper.Map<List<AuthorDto>>(authors);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<Author>> Get(int id)
+        [HttpGet("{id:int}", Name = "getAuthorById")] //GET: /api/authors/{id}
+        public async Task<ActionResult<AuthorDtoWithBooks>> GetById(int id)
         {
-            var autor = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
+            var autor = await _context.Authors
+                .Include(authorDb => authorDb.AuthorsBooks)
+                .ThenInclude(authorBooksDb => authorBooksDb.Book)
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if(autor == null)
                 return NotFound();
 
-            return autor;
+            return _mapper.Map<AuthorDtoWithBooks>(autor);
         }
-        
-        [HttpGet("{name}")]
-        public async Task<ActionResult<Author>> Get(string name)
-        {
-            var autor = await _context.Authors.FirstOrDefaultAsync(a => a.Name.Contains(name));
 
-            if(autor == null)
+        [HttpGet("{name}")] //GET: /api/authors/{name}
+        public async Task<ActionResult<List<AuthorDto>>> GetByName(string name)
+        {
+            var authors = await _context.Authors.Where(a => a.Name.Contains(name)).ToListAsync();
+
+            if(authors == null)
                 return NotFound();
 
-            return autor;
+            return _mapper.Map<List<AuthorDto>>(authors);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> Add(Author author)
+        [HttpPost] //POST: /api/authors/
+        public async Task<ActionResult> Add(AuthorCreationDto authorCreationDTO)
         {
-            var authorSameName = await _context.Authors.AnyAsync(x => x.Name == author.Name);
+            var authorSameName = await _context.Authors.AnyAsync(x => x.Name == authorCreationDTO.Name);
+
             if(authorSameName)
-                return BadRequest($"There is already an author with the name: {author.Name}");
+                return BadRequest($"There is already an author with the name: {authorCreationDTO.Name}");
+
+            var author = _mapper.Map<Author>(authorCreationDTO);
 
             _context.Add(author);
             await _context.SaveChangesAsync();
-            return Ok();
+
+            return CreatedAtRoute("getAuthorById", new { id = author.Id }, _mapper.Map<AuthorDto>(author) );
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult> Edit(int id, Author author)
+        [HttpPut("{id:int}")] //PUT: /api/authors/
+        public async Task<ActionResult> Edit(int id, AuthorCreationDto authorDTO)
         {
-            if(author.Id != id || id == 0 )
+            var authorExists = await _context.Authors.AnyAsync(x => x.Id == id);
+            if(!authorExists)
                 return BadRequest("Author not found");
+
+            var author = _mapper.Map<Author>(authorDTO);
 
             _context.Update(author);
             await _context.SaveChangesAsync();
-            return Ok();
+            return NoContent();
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}")] //DELETE: /api/authors/
         public async Task<ActionResult> Delete(int id)
         {
             var deleteAuthor = await _context.Authors.AnyAsync(a => a.Id == id);

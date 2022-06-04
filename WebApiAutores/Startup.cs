@@ -23,7 +23,7 @@ namespace WebApiAutores
             services.AddControllers(options =>
             {
                 options.Filters.Add(typeof(ExceptionFilter));
-            }).AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+            }).AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("defaultConnection")));
 
@@ -33,11 +33,13 @@ namespace WebApiAutores
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIAuthors", Version = "V1" });
             });
+
+            services.AddAutoMapper(typeof(Startup));
         }
 
         public void Configure(IApplicationBuilder applicationBuilder, IWebHostEnvironment environment)
         {
-            applicationBuilder.UseLoggHttpResponse();
+            //applicationBuilder.UseLoggHttpResponse();
 
             // Configure the HTTP request pipeline.
             if (environment.IsDevelopment())

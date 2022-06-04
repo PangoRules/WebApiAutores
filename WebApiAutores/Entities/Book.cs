@@ -1,4 +1,5 @@
-﻿using WebApiAutores.Validations;
+﻿using System.ComponentModel.DataAnnotations;
+using WebApiAutores.Validations;
 
 namespace WebApiAutores.Entities
 {
@@ -6,7 +7,15 @@ namespace WebApiAutores.Entities
     {
         public int Id { get; set; }
 
-        [FirstLetterCap]
+        [Required]
+        [EachWordCap]
+        [StringLength(maximumLength: 250)]
         public string Title { get; set; }
+
+        public DateTime? DatePublished { get; set; }
+
+        public List<Comment> Comments { get; set; }
+
+        public List<AuthorBook> AuthorsBooks { get; set; }
     }
 }
