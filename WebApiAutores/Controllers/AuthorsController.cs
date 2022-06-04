@@ -13,12 +13,22 @@ namespace WebApiAutores.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
-        public AuthorsController(ApplicationDbContext context, IMapper mapper)
+        public AuthorsController(ApplicationDbContext context, IMapper mapper, IConfiguration configuration)
         {
             this._context = context;
             this._mapper = mapper;
+            this._configuration = configuration;
         }
+
+        [HttpGet("configs")]
+        public ActionResult<string> GetConfigs()
+        {
+            //return _configuration["apellido"];
+            return _configuration["connectionStrings:defaultConnection"];
+        }
+
 
         [HttpGet] //GET: /api/authors
         public async Task<ActionResult<List<AuthorDto>>> GetList()
