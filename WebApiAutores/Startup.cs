@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
@@ -35,6 +36,8 @@ namespace WebApiAutores
             });
 
             services.AddAutoMapper(typeof(Startup));
+
+            services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
         }
 
         public void Configure(IApplicationBuilder applicationBuilder, IWebHostEnvironment environment)
