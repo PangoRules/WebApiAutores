@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using WebApiAutores.Filters;
-using WebApiAutores.Middlewares;
 
 namespace WebApiAutores
 {
@@ -16,13 +16,15 @@ namespace WebApiAutores
 
         public Startup(IConfiguration configuration)
         {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             this.Configuration = configuration;
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options => options.TokenValidationParameters = new TokenValidationParameters {
+                .AddJwtBearer(options => options.TokenValidationParameters = new TokenValidationParameters
+                {
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
@@ -79,7 +81,7 @@ namespace WebApiAutores
             //applicationBuilder.UseLoggHttpResponse();
 
             // Configure the HTTP request pipeline.
-            if (environment.IsDevelopment())
+            if(environment.IsDevelopment())
             {
                 applicationBuilder.UseSwagger();
                 applicationBuilder.UseSwaggerUI();
@@ -90,7 +92,6 @@ namespace WebApiAutores
             applicationBuilder.UseRouting();
 
             applicationBuilder.UseResponseCaching();
-            
 
             applicationBuilder.UseAuthorization();
 

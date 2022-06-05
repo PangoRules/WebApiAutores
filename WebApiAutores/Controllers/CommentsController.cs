@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiAutores.DTOs;
@@ -12,11 +15,13 @@ namespace WebApiAutores.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public CommentsController(ApplicationDbContext context, IMapper mapper)
+        public CommentsController(ApplicationDbContext context, IMapper mapper, UserManager<IdentityUser> userManager)
         {
             this._context = context;
             this._mapper = mapper;
+            this._userManager = userManager;
         }
 
         [HttpGet("{id:int}", Name = "getCommentById")]
@@ -43,8 +48,12 @@ namespace WebApiAutores.Controllers
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> Post(int bookId, CommentAddDto commentDto)
         {
+            var email = HttpContext.User.Claims.Where(claim => claim.Type == "email").FirstOrDefault().Value;
+            var user = await _userManager.FindByEmailAsync(email);
+
             var book = await _context.Books.AnyAsync(bookDb => bookDb.Id == bookId);
 
             if(!book)
@@ -53,6 +62,7 @@ namespace WebApiAutores.Controllers
             var comment = _mapper.Map<Comment>(commentDto);
 
             comment.BookId = bookId;
+            comment.UserId = user.Id;
             _context.Add(comment);
             await _context.SaveChangesAsync();
 
@@ -60,6 +70,7 @@ namespace WebApiAutores.Controllers
         }
 
         [HttpPut]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> Put(int bookId, int id, CommentAddDto commentDto)
         {
             var bookExists = await _context.Books.AnyAsync(bookDb => bookDb.Id == bookId);
@@ -71,7 +82,7 @@ namespace WebApiAutores.Controllers
             var comment = _mapper.Map<Comment>(commentDto);
             comment.Id = id;
             comment.BookId = bookId;
-            
+
             _context.Update(comment);
             await _context.SaveChangesAsync();
 

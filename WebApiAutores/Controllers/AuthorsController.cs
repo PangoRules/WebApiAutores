@@ -11,6 +11,7 @@ namespace WebApiAutores.Controllers
     //TODO: Pending to re-factor the code so unit-tests may apply
     [ApiController]
     [Route("api/authors")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class AuthorsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -25,7 +26,7 @@ namespace WebApiAutores.Controllers
         }
 
         [HttpGet] //GET: /api/authors
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [AllowAnonymous]
         public async Task<ActionResult<List<AuthorDto>>> GetList()
         {
             var authors = await _context.Authors.ToListAsync();

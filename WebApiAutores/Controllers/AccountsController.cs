@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -50,6 +52,18 @@ namespace WebApiAutores.Controllers
             else
                 return BadRequest("Unsuccessful login");
         }
+
+        [HttpGet("RefreshToken")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public ActionResult<AuthResponseDto> RefreshToken()
+        {
+            var userCredentials = new UserCredentialsDto()
+            {
+                Email = HttpContext.User.Claims.Where(claim => claim.Type == "email").FirstOrDefault().Value
+            };
+
+            return Ok(CreateToken(userCredentials));
+        }
         
         /// <summary>
         /// Function in charge of creating the Jwt-Token.
@@ -71,7 +85,7 @@ namespace WebApiAutores.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             //Expire date for the token
-            var expireDate = DateTime.UtcNow.AddYears(1);
+            var expireDate = DateTime.UtcNow.AddHours(1);
 
             //Creating the token, search for this in Google for more info
             var securityToken = new JwtSecurityToken(issuer: null, audience: null, claims: claims, expires: expireDate, signingCredentials: creds);
