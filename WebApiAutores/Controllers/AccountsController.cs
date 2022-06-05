@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -7,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using WebApiAutores.DTOs;
+using WebApiAutores.Services;
 
 namespace WebApiAutores.Controllers
 {
@@ -17,13 +19,42 @@ namespace WebApiAutores.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly HashService hasService;
+        private readonly IDataProtector _dataProtector;
 
-        public AccountsController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, IConfiguration configuration)
+        public AccountsController(SignInManager<IdentityUser> signInManager, 
+            UserManager<IdentityUser> userManager, 
+            IConfiguration configuration, 
+            HashService hasService,
+            IDataProtectionProvider dataProtectionProvider)
         {
             this._signInManager = signInManager;
             this._userManager = userManager;
             this._configuration = configuration;
+            this.hasService = hasService;
+            this._dataProtector = dataProtectionProvider.CreateProtector("valor_unico_y_quizas_secreto");
         }
+
+        [HttpGet("hash/{plainText}")]
+        public ActionResult CreateHash(string plainText)
+        {
+            var result1 = hasService.Hash(plainText);
+            var result2 = hasService.Hash(plainText);
+
+            return Ok(new { plainText = plainText, hash1 = result1, hash2 = result2 });
+        }
+
+        [HttpGet("encriptar")]
+        public ActionResult Encript()
+        {
+            var plainText = "Pango Rules";
+            var criptedText = _dataProtector.Protect(plainText);
+            var decriptedText = _dataProtector.Unprotect(criptedText);
+
+            return Ok(new { plainText = plainText, criptedText = criptedText, decriptedText = decriptedText });
+        }
+
+
 
         [HttpPost("register")] //POST: api/accounts/register
         public async Task<ActionResult<AuthResponseDto>> Register(UserCredentialsDto userCredentials)
@@ -34,7 +65,7 @@ namespace WebApiAutores.Controllers
 
             if(result.Succeeded)
             {
-                return Ok(CreateToken(userCredentials));
+                return Ok(await CreateToken(userCredentials));
             }
             else
                 return BadRequest(result.Errors);
@@ -47,22 +78,54 @@ namespace WebApiAutores.Controllers
 
             if(result.Succeeded)
             {
-                return Ok(CreateToken(userCredentials));
+                return Ok(await CreateToken(userCredentials));
             }
             else
                 return BadRequest("Unsuccessful login");
         }
 
-        [HttpGet("RefreshToken")]
+        [HttpGet("RefreshToken")] //GET: api/accounts/RefreshToken
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public ActionResult<AuthResponseDto> RefreshToken()
+        public async Task<ActionResult<AuthResponseDto>> RefreshToken()
         {
             var userCredentials = new UserCredentialsDto()
             {
                 Email = HttpContext.User.Claims.Where(claim => claim.Type == "email").FirstOrDefault().Value
             };
 
-            return Ok(CreateToken(userCredentials));
+            return Ok(await CreateToken(userCredentials));
+        }
+
+        [HttpPost("MakeAdmin")] //POST: api/accounts/MakeAdmin
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ActionResult> MakeAdmin(EditAdminDto editAdminDto)
+        {
+            var user = await _userManager.FindByEmailAsync(editAdminDto.Email);
+
+            var claimsList = await _userManager.GetClaimsAsync(user);
+
+            if(claimsList.FirstOrDefault(c => c.Type == "isAdmin") != null)
+                return BadRequest("User is already admin.");
+
+            await _userManager.AddClaimAsync(user, new Claim("isAdmin", "1"));
+
+            return NoContent();
+        }
+        
+        [HttpPost("RemoveAdmin")] //POST: api/accounts/MakeAdmin
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ActionResult> RemoveAdmin(EditAdminDto editAdminDto)
+        {
+            var user = await _userManager.FindByEmailAsync(editAdminDto.Email);
+
+            var claimsList = await _userManager.GetClaimsAsync(user);
+
+            if(claimsList.FirstOrDefault(c => c.Type == "isAdmin") == null)
+                return BadRequest("User doesn't have admin privileges to remove.");
+
+            await _userManager.RemoveClaimAsync(user, new Claim("isAdmin", "1"));
+
+            return NoContent();
         }
         
         /// <summary>
@@ -70,13 +133,23 @@ namespace WebApiAutores.Controllers
         /// </summary>
         /// <param name="userCredentials">Credentials user has to pass to create the token.</param>
         /// <returns>An object with the token and the expiring date of it inside.</returns>
-        private AuthResponseDto CreateToken(UserCredentialsDto userCredentials)
+        private async Task<AuthResponseDto> CreateToken(UserCredentialsDto userCredentials)
         {
             //Creating the list of claims visible to the user (Also in the UI)
             var claims = new List<Claim>()
             {
                 new Claim("email", userCredentials.Email)
             };
+
+            //Getting the user if is already created to find it's list of claims
+            var user = await _userManager.FindByEmailAsync(userCredentials.Email);
+            if(user != null)
+            {
+                var claimsDb = await _userManager.GetClaimsAsync(user);
+
+                claims.AddRange(claimsDb);
+            }
+            
 
             //Getting the encryption key for the token
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwtKey"]));

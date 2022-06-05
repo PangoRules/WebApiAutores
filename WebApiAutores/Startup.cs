@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using WebApiAutores.Filters;
+using WebApiAutores.Services;
 
 namespace WebApiAutores
 {
@@ -74,6 +75,23 @@ namespace WebApiAutores
             services.AddAutoMapper(typeof(Startup));
 
             services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("IsAdmin", policy => policy.RequireClaim("isAdmin"));
+                //options.AddPolicy("IsSeller", policy => policy.RequireClaim("isSeller"));
+            });
+
+            services.AddDataProtection();
+            services.AddTransient<HashService>();
+
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader();
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder applicationBuilder, IWebHostEnvironment environment)
@@ -90,6 +108,8 @@ namespace WebApiAutores
             applicationBuilder.UseHttpsRedirection();
 
             applicationBuilder.UseRouting();
+
+            applicationBuilder.UseCors();
 
             applicationBuilder.UseResponseCaching();
 
