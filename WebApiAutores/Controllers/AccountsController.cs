@@ -12,11 +12,13 @@ namespace WebApiAutores.Controllers
     [Route("api/accounts")]
     public class AccountsController : ControllerBase
     {
+        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IConfiguration _configuration;
 
-        public AccountsController(UserManager<IdentityUser> userManager, IConfiguration configuration)
+        public AccountsController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, IConfiguration configuration)
         {
+            this._signInManager = signInManager;
             this._userManager = userManager;
             this._configuration = configuration;
         }
@@ -34,6 +36,19 @@ namespace WebApiAutores.Controllers
             }
             else
                 return BadRequest(result.Errors);
+        }
+
+        [HttpPost("login")] //POST: api/accounts/login
+        public async Task<ActionResult<AuthResponseDto>> Login(UserCredentialsDto userCredentials)
+        {
+            var result = await _signInManager.PasswordSignInAsync(userCredentials.Email, userCredentials.Password, isPersistent: false, lockoutOnFailure: false);
+
+            if(result.Succeeded)
+            {
+                return Ok(CreateToken(userCredentials));
+            }
+            else
+                return BadRequest("Unsuccessful login");
         }
         
         /// <summary>
