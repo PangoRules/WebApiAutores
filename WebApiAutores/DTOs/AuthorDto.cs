@@ -1,6 +1,6 @@
 ﻿namespace WebApiAutores.DTOs
 {
-    public class AuthorDto
+    public class AuthorDto : Resource
     {
         public int Id { get; set; }
 
