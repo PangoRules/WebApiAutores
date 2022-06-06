@@ -1,16 +1,19 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using WebApiAutores.Filters;
 using WebApiAutores.Services;
 using WebApiAutores.Utilities;
 
+[assembly: ApiConventionType(typeof(DefaultApiConventions))]
 namespace WebApiAutores
 {
     public class Startup
@@ -48,7 +51,12 @@ namespace WebApiAutores
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIAuthors", Version = "V1" });
+                c.SwaggerDoc(name: "v1", info: new OpenApiInfo { 
+                    Title = "WebAPIAuthors", 
+                    Version = "V1",
+                    Description = "This is a web api to manage authors and books",
+                    Contact = new OpenApiContact() { Email = "animasdelmundo2@gmail.com", Name = "Pango" }
+                });
                 c.SwaggerDoc("v2", new OpenApiInfo { Title = "WebAPIAuthors", Version = "V2" });
 
                 c.OperationFilter<AddHateoasParameter>();
@@ -77,6 +85,10 @@ namespace WebApiAutores
                         new string [] {}
                     }
                 });
+
+                var xmlArchive = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var routeXml = Path.Combine(AppContext.BaseDirectory, xmlArchive);
+                c.IncludeXmlComments(routeXml);
             });
 
             services.AddAutoMapper(typeof(Startup));

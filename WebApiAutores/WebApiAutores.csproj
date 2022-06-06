@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
     <UserSecretsId>902aa9b8-d8d4-4074-ab47-1128b23b3f4a</UserSecretsId>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

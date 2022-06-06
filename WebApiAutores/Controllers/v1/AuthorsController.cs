@@ -52,7 +52,7 @@ namespace WebApiAutores.Controllers.v1
 
             var result = _mapper.Map<AuthorDtoWithBooks>(autor);
 
-            return result;
+            return Ok(result);
         }
 
         [HttpGet("{name}", Name = "getAuthorsByNamev1")] //GET: /api/authors/{name}
@@ -100,6 +100,11 @@ namespace WebApiAutores.Controllers.v1
             return NoContent();
         }
 
+        /// <summary>
+        /// Deletes an author
+        /// </summary>
+        /// <param name="id">Id of the author to delete</param>
+        /// <returns></returns>
         [HttpDelete("{id:int}", Name = "deleteAuthorv1")] //DELETE: /api/authors/
         public async Task<ActionResult> Delete(int id)
         {
