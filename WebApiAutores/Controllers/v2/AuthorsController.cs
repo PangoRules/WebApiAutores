@@ -11,7 +11,9 @@ namespace WebApiAutores.Controllers.v2
 {
     //TODO: Pending to re-factor the code so unit-tests may apply
     [ApiController]
-    [Route("api/v2/authors")]
+    [Route("api/authors")]
+    [HeaderPresentAttribute("x-version", "2")]
+    //[Route("api/v2/authors")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "IsAdmin")]
     public class AuthorsController : ControllerBase
     {
