@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -8,6 +9,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using WebApiAutores.Filters;
 using WebApiAutores.Services;
+using WebApiAutores.Utilities;
 
 namespace WebApiAutores
 {
@@ -92,6 +94,10 @@ namespace WebApiAutores
                     builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader();
                 });
             });
+
+            services.AddTransient<Services.LinkGenerator>();
+            services.AddTransient<HATEOASAuthorFilterAttribute>();
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
         }
 
         public void Configure(IApplicationBuilder applicationBuilder, IWebHostEnvironment environment)
