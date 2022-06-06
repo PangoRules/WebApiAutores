@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore;
 using WebApiAutores.DTOs;
 using WebApiAutores.Entities;
 
-namespace WebApiAutores.Controllers
+namespace WebApiAutores.Controllers.v1
 {
     [ApiController]
-    [Route("api/books/{bookId:int}/comments")]
+    [Route("api/v1/books/{bookId:int}/comments")]
     public class CommentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -19,9 +19,9 @@ namespace WebApiAutores.Controllers
 
         public CommentsController(ApplicationDbContext context, IMapper mapper, UserManager<IdentityUser> userManager)
         {
-            this._context = context;
-            this._mapper = mapper;
-            this._userManager = userManager;
+            _context = context;
+            _mapper = mapper;
+            _userManager = userManager;
         }
 
         [HttpGet("{id:int}", Name = "getCommentById")]
@@ -66,7 +66,7 @@ namespace WebApiAutores.Controllers
             _context.Add(comment);
             await _context.SaveChangesAsync();
 
-            return CreatedAtRoute("getCommentById", new { bookId = bookId, id = comment.Id }, _mapper.Map<CommentDto>(comment));
+            return CreatedAtRoute("getCommentById", new { bookId, id = comment.Id }, _mapper.Map<CommentDto>(comment));
         }
 
         [HttpPut(Name = "updateComment")]

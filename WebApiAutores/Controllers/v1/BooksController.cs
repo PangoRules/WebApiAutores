@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 using WebApiAutores.DTOs;
 using WebApiAutores.Entities;
 
-namespace WebApiAutores.Controllers
+namespace WebApiAutores.Controllers.v1
 {
     //TODO: Pending to re-factor the code so unit-tests may apply
     [ApiController]
-    [Route("api/books")]
+    [Route("api/v1/books")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "IsAdmin")]
     public class BooksController : ControllerBase
     {
@@ -21,7 +21,7 @@ namespace WebApiAutores.Controllers
         public BooksController(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
-            this._mapper = mapper;
+            _mapper = mapper;
         }
 
         [HttpGet("{id:int}", Name = "getBookById")] //GET: /api/books{id}

@@ -10,23 +10,23 @@ using System.Text;
 using WebApiAutores.DTOs;
 using WebApiAutores.Services;
 
-namespace WebApiAutores.Controllers
+namespace WebApiAutores.Controllers.v1
 {
     [ApiController]
-    [Route("api/accounts")]
+    [Route("api/v1/accounts")]
     public class AccountsController : ControllerBase
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IConfiguration _configuration;
 
-        public AccountsController(SignInManager<IdentityUser> signInManager, 
-            UserManager<IdentityUser> userManager, 
+        public AccountsController(SignInManager<IdentityUser> signInManager,
+            UserManager<IdentityUser> userManager,
             IConfiguration configuration)
         {
-            this._signInManager = signInManager;
-            this._userManager = userManager;
-            this._configuration = configuration;
+            _signInManager = signInManager;
+            _userManager = userManager;
+            _configuration = configuration;
         }
 
         [HttpPost("register", Name = "newUser")] //POST: api/accounts/register
@@ -84,7 +84,7 @@ namespace WebApiAutores.Controllers
 
             return NoContent();
         }
-        
+
         [HttpPost("RemoveAdmin", Name = "removeAdmin")] //POST: api/accounts/MakeAdmin
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> RemoveAdmin(EditAdminDto editAdminDto)
@@ -100,7 +100,7 @@ namespace WebApiAutores.Controllers
 
             return NoContent();
         }
-        
+
         /// <summary>
         /// Function in charge of creating the Jwt-Token.
         /// </summary>
@@ -122,7 +122,7 @@ namespace WebApiAutores.Controllers
 
                 claims.AddRange(claimsDb);
             }
-            
+
 
             //Getting the encryption key for the token
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwtKey"]));

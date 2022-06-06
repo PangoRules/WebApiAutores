@@ -39,6 +39,7 @@ namespace WebApiAutores
             services.AddControllers(options =>
             {
                 options.Filters.Add(typeof(ExceptionFilter));
+                options.Conventions.Add(new SwaggerVersionGrouping());
             }).AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("defaultConnection")));
@@ -48,6 +49,7 @@ namespace WebApiAutores
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIAuthors", Version = "V1" });
+                c.SwaggerDoc("v2", new OpenApiInfo { Title = "WebAPIAuthors", Version = "V2" });
 
                 c.OperationFilter<AddHateoasParameter>();
 
@@ -110,7 +112,10 @@ namespace WebApiAutores
             if(environment.IsDevelopment())
             {
                 applicationBuilder.UseSwagger();
-                applicationBuilder.UseSwaggerUI();
+                applicationBuilder.UseSwaggerUI(c => {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApiAuthors v1");
+                    c.SwaggerEndpoint("/swagger/v2/swagger.json", "WebApiAuthors v2");
+                 });
             }
 
             applicationBuilder.UseHttpsRedirection();

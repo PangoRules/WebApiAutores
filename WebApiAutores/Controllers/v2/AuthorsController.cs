@@ -7,11 +7,11 @@ using WebApiAutores.DTOs;
 using WebApiAutores.Entities;
 using WebApiAutores.Utilities;
 
-namespace WebApiAutores.Controllers
+namespace WebApiAutores.Controllers.v2
 {
     //TODO: Pending to re-factor the code so unit-tests may apply
     [ApiController]
-    [Route("api/authors")]
+    [Route("api/v2/authors")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "IsAdmin")]
     public class AuthorsController : ControllerBase
     {
@@ -21,21 +21,22 @@ namespace WebApiAutores.Controllers
 
         public AuthorsController(ApplicationDbContext context, IMapper mapper, IAuthorizationService authorizationService)
         {
-            this._context = context;
-            this._mapper = mapper;
-            this._authorizationService = authorizationService;
+            _context = context;
+            _mapper = mapper;
+            _authorizationService = authorizationService;
         }
 
-        [HttpGet(Name = "getAuthors")] //GET: /api/authors
+        [HttpGet(Name = "getAuthorsv2")] //GET: /api/authors
         [AllowAnonymous]
         [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
         public async Task<ActionResult<List<AuthorDto>>> GetList()
         {
             var authors = await _context.Authors.ToListAsync();
+            authors.ForEach(author => author.Name = author.Name.ToUpper());
             return Ok(_mapper.Map<List<AuthorDto>>(authors));
         }
 
-        [HttpGet("{id:int}", Name = "getAuthorById")] //GET: /api/authors/{id}
+        [HttpGet("{id:int}", Name = "getAuthorByIdv2")] //GET: /api/authors/{id}
         [AllowAnonymous]
         [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
         public async Task<ActionResult<AuthorDtoWithBooks>> GetById(int id)
@@ -53,7 +54,7 @@ namespace WebApiAutores.Controllers
             return result;
         }
 
-        [HttpGet("{name}", Name = "getAuthorsByName")] //GET: /api/authors/{name}
+        [HttpGet("{name}", Name = "getAuthorsByNamev2")] //GET: /api/authors/{name}
         [AllowAnonymous]
         [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
         public async Task<ActionResult<List<AuthorDto>>> GetByName(string name)
@@ -68,7 +69,7 @@ namespace WebApiAutores.Controllers
             return mappedAuthors;
         }
 
-        [HttpPost(Name = "createAuthor")] //POST: /api/authors/
+        [HttpPost(Name = "createAuthorv2")] //POST: /api/authors/
         public async Task<ActionResult> Add(AuthorCreationDto authorCreationDTO)
         {
             var authorSameName = await _context.Authors.AnyAsync(x => x.Name == authorCreationDTO.Name);
@@ -81,10 +82,10 @@ namespace WebApiAutores.Controllers
             _context.Add(author);
             await _context.SaveChangesAsync();
 
-            return CreatedAtRoute("getAuthorById", new { id = author.Id }, _mapper.Map<AuthorDto>(author) );
+            return CreatedAtRoute("getAuthorById", new { id = author.Id }, _mapper.Map<AuthorDto>(author));
         }
 
-        [HttpPut("{id:int}", Name = "updateAuthor")] //PUT: /api/authors/
+        [HttpPut("{id:int}", Name = "updateAuthorv2")] //PUT: /api/authors/
         public async Task<ActionResult> Edit(int id, AuthorCreationDto authorDTO)
         {
             var authorExists = await _context.Authors.AnyAsync(x => x.Id == id);
@@ -98,7 +99,7 @@ namespace WebApiAutores.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id:int}", Name = "deleteAuthor")] //DELETE: /api/authors/
+        [HttpDelete("{id:int}", Name = "deleteAuthorv2")] //DELETE: /api/authors/
         public async Task<ActionResult> Delete(int id)
         {
             var deleteAuthor = await _context.Authors.AnyAsync(a => a.Id == id);
