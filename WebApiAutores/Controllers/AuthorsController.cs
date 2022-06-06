@@ -29,7 +29,7 @@ namespace WebApiAutores.Controllers
         [HttpGet(Name = "getAuthors")] //GET: /api/authors
         [AllowAnonymous]
         [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
-        public async Task<ActionResult<List<AuthorDto>>> GetList([FromHeader] string includeHATEOAS)
+        public async Task<ActionResult<List<AuthorDto>>> GetList()
         {
             var authors = await _context.Authors.ToListAsync();
             return Ok(_mapper.Map<List<AuthorDto>>(authors));
@@ -38,7 +38,7 @@ namespace WebApiAutores.Controllers
         [HttpGet("{id:int}", Name = "getAuthorById")] //GET: /api/authors/{id}
         [AllowAnonymous]
         [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
-        public async Task<ActionResult<AuthorDtoWithBooks>> GetById(int id, [FromHeader] string includeHATEOAS)
+        public async Task<ActionResult<AuthorDtoWithBooks>> GetById(int id)
         {
             var autor = await _context.Authors
                 .Include(authorDb => authorDb.AuthorsBooks)
@@ -56,7 +56,7 @@ namespace WebApiAutores.Controllers
         [HttpGet("{name}", Name = "getAuthorsByName")] //GET: /api/authors/{name}
         [AllowAnonymous]
         [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
-        public async Task<ActionResult<List<AuthorDto>>> GetByName(string name, [FromHeader] string includeHATEOAS)
+        public async Task<ActionResult<List<AuthorDto>>> GetByName(string name)
         {
             var authors = await _context.Authors.Where(a => a.Name.Contains(name)).ToListAsync();
 
