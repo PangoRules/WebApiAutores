@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +12,7 @@ namespace WebApiAutores.Controllers
     //TODO: Pending to re-factor the code so unit-tests may apply
     [ApiController]
     [Route("api/books")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "IsAdmin")]
     public class BooksController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -40,7 +43,7 @@ namespace WebApiAutores.Controllers
             return _mapper.Map<BookDtoWithAuthors>(book);
         }
 
-        [HttpPost] //POST: /api/books
+        [HttpPost(Name = "newBook")] //POST: /api/books
         public async Task<ActionResult> Add(BookCreationDto bookDto)
         {
             if(bookDto.AuthorsIds == null)
@@ -60,7 +63,7 @@ namespace WebApiAutores.Controllers
             return CreatedAtRoute("getBookById", new { id = book.Id }, _mapper.Map<BookDto>(book));
         }
 
-        [HttpPut("{id:int}")] //PUT: /api/books{id}
+        [HttpPut("{id:int}", Name = "updateBook")] //PUT: /api/books{id}
         public async Task<ActionResult> Put(int id, BookCreationDto bookDto)
         {
             if(bookDto.AuthorsIds == null)
@@ -85,7 +88,7 @@ namespace WebApiAutores.Controllers
             return NoContent();
         }
 
-        [HttpPatch("{id:int}")] //PATCH: /api/books{id}
+        [HttpPatch("{id:int}", Name = "partialUpdateBook")] //PATCH: /api/books{id}
         public async Task<ActionResult> Patch(int id, JsonPatchDocument<BookPatchDto> patchDocument)
         {
             if(patchDocument == null)
@@ -111,7 +114,7 @@ namespace WebApiAutores.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id:int}")] //DELETE: /api/books{id}
+        [HttpDelete("{id:int}", Name = "deleteBook")] //DELETE: /api/books{id}
         public async Task<ActionResult> Delete(int id)
         {
             var deleteBook = await _context.Books.AnyAsync(a => a.Id == id);

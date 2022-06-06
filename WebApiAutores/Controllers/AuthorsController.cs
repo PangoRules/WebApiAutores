@@ -25,7 +25,7 @@ namespace WebApiAutores.Controllers
             this._configuration = configuration;
         }
 
-        [HttpGet] //GET: /api/authors
+        [HttpGet(Name = "getAuthors")] //GET: /api/authors
         [AllowAnonymous]
         public async Task<ActionResult<List<AuthorDto>>> GetList()
         {
@@ -47,7 +47,7 @@ namespace WebApiAutores.Controllers
             return _mapper.Map<AuthorDtoWithBooks>(autor);
         }
 
-        [HttpGet("{name}")] //GET: /api/authors/{name}
+        [HttpGet("{name}", Name = "getAuthorsByName")] //GET: /api/authors/{name}
         public async Task<ActionResult<List<AuthorDto>>> GetByName(string name)
         {
             var authors = await _context.Authors.Where(a => a.Name.Contains(name)).ToListAsync();
@@ -58,7 +58,7 @@ namespace WebApiAutores.Controllers
             return _mapper.Map<List<AuthorDto>>(authors);
         }
 
-        [HttpPost] //POST: /api/authors/
+        [HttpPost(Name = "createAuthor")] //POST: /api/authors/
         public async Task<ActionResult> Add(AuthorCreationDto authorCreationDTO)
         {
             var authorSameName = await _context.Authors.AnyAsync(x => x.Name == authorCreationDTO.Name);
@@ -74,7 +74,7 @@ namespace WebApiAutores.Controllers
             return CreatedAtRoute("getAuthorById", new { id = author.Id }, _mapper.Map<AuthorDto>(author) );
         }
 
-        [HttpPut("{id:int}")] //PUT: /api/authors/
+        [HttpPut("{id:int}", Name = "updateAuthor")] //PUT: /api/authors/
         public async Task<ActionResult> Edit(int id, AuthorCreationDto authorDTO)
         {
             var authorExists = await _context.Authors.AnyAsync(x => x.Id == id);
@@ -88,7 +88,7 @@ namespace WebApiAutores.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id:int}")] //DELETE: /api/authors/
+        [HttpDelete("{id:int}", Name = "deleteAuthor")] //DELETE: /api/authors/
         public async Task<ActionResult> Delete(int id)
         {
             var deleteAuthor = await _context.Authors.AnyAsync(a => a.Id == id);

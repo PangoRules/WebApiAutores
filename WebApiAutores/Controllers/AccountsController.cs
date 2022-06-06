@@ -19,44 +19,17 @@ namespace WebApiAutores.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IConfiguration _configuration;
-        private readonly HashService hasService;
-        private readonly IDataProtector _dataProtector;
 
         public AccountsController(SignInManager<IdentityUser> signInManager, 
             UserManager<IdentityUser> userManager, 
-            IConfiguration configuration, 
-            HashService hasService,
-            IDataProtectionProvider dataProtectionProvider)
+            IConfiguration configuration)
         {
             this._signInManager = signInManager;
             this._userManager = userManager;
             this._configuration = configuration;
-            this.hasService = hasService;
-            this._dataProtector = dataProtectionProvider.CreateProtector("valor_unico_y_quizas_secreto");
         }
 
-        [HttpGet("hash/{plainText}")]
-        public ActionResult CreateHash(string plainText)
-        {
-            var result1 = hasService.Hash(plainText);
-            var result2 = hasService.Hash(plainText);
-
-            return Ok(new { plainText = plainText, hash1 = result1, hash2 = result2 });
-        }
-
-        [HttpGet("encriptar")]
-        public ActionResult Encript()
-        {
-            var plainText = "Pango Rules";
-            var criptedText = _dataProtector.Protect(plainText);
-            var decriptedText = _dataProtector.Unprotect(criptedText);
-
-            return Ok(new { plainText = plainText, criptedText = criptedText, decriptedText = decriptedText });
-        }
-
-
-
-        [HttpPost("register")] //POST: api/accounts/register
+        [HttpPost("register", Name = "newUser")] //POST: api/accounts/register
         public async Task<ActionResult<AuthResponseDto>> Register(UserCredentialsDto userCredentials)
         {
             var user = new IdentityUser { UserName = userCredentials.Email, Email = userCredentials.Email };
@@ -71,7 +44,7 @@ namespace WebApiAutores.Controllers
                 return BadRequest(result.Errors);
         }
 
-        [HttpPost("login")] //POST: api/accounts/login
+        [HttpPost("login", Name = "loginUser")] //POST: api/accounts/login
         public async Task<ActionResult<AuthResponseDto>> Login(UserCredentialsDto userCredentials)
         {
             var result = await _signInManager.PasswordSignInAsync(userCredentials.Email, userCredentials.Password, isPersistent: false, lockoutOnFailure: false);
@@ -84,7 +57,7 @@ namespace WebApiAutores.Controllers
                 return BadRequest("Unsuccessful login");
         }
 
-        [HttpGet("RefreshToken")] //GET: api/accounts/RefreshToken
+        [HttpGet("RefreshToken", Name = "refreshToken")] //GET: api/accounts/RefreshToken
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<AuthResponseDto>> RefreshToken()
         {
@@ -96,7 +69,7 @@ namespace WebApiAutores.Controllers
             return Ok(await CreateToken(userCredentials));
         }
 
-        [HttpPost("MakeAdmin")] //POST: api/accounts/MakeAdmin
+        [HttpPost("MakeAdmin", Name = "makeAdmin")] //POST: api/accounts/MakeAdmin
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> MakeAdmin(EditAdminDto editAdminDto)
         {
@@ -112,7 +85,7 @@ namespace WebApiAutores.Controllers
             return NoContent();
         }
         
-        [HttpPost("RemoveAdmin")] //POST: api/accounts/MakeAdmin
+        [HttpPost("RemoveAdmin", Name = "removeAdmin")] //POST: api/accounts/MakeAdmin
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> RemoveAdmin(EditAdminDto editAdminDto)
         {
